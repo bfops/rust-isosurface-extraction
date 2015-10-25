@@ -57,8 +57,7 @@ pub mod voxel_storage {
 
 #[allow(missing_docs)]
 pub mod edge {
-  use cgmath::{Aabb, Aabb3, Point, Point3, Vector, Vector3};
-  use std;
+  use cgmath::{Aabb, Point, Point3, Vector, Vector3};
   use voxel_data;
 
   use super::{voxel_storage, polygon, material};
@@ -102,28 +101,6 @@ pub mod edge {
       make_bounds(edge.low_corner.add_v(&v1).add_v(&v2)),
       make_bounds(edge.low_corner.add_v(&v2)),
     ]
-  }
-
-  pub fn inside_bounds(bounds: &Aabb3<i32>, lg_size: i16) -> Box<Iterator<Item=T>> {
-    let min = *bounds.min();
-    let max = *bounds.max();
-    let for_dim = move |direction, dx, dy, dz| {
-      std::iter::range_inclusive(min.x, max.x - dx).flat_map(move |x| {
-      std::iter::range_inclusive(min.y, max.y - dy).flat_map(move |y| {
-      std::iter::range_inclusive(min.z, max.z - dz).     map(move |z| {
-        T {
-          low_corner: Point3::new(x, y, z),
-          direction: direction,
-          lg_size: lg_size,
-        }
-      })})})
-    };
-
-    Box::new(
-             for_dim(Direction::X, 1, 0, 0)
-      .chain(for_dim(Direction::Y, 0, 1, 0))
-      .chain(for_dim(Direction::Z, 0, 0, 1))
-    )
   }
 
   enum Crossing<Material> {
