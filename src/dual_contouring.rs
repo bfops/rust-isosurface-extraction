@@ -67,9 +67,9 @@ pub mod edge {
 
   #[allow(missing_docs)]
   pub struct T {
-    low_corner: Point3<i32>,
-    lg_size: i16,
-    direction: Direction,
+    pub low_corner: Point3<i32>,
+    pub lg_size: i16,
+    pub direction: Direction,
   }
 
   fn corner_bounds(edge: &T) -> [voxel_data::bounds::T; 2] {
