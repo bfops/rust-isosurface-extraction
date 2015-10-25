@@ -1,6 +1,7 @@
 //! Voxel-to-mesh conversion functions
 
 #![feature(slice_patterns)]
+#![feature(range_inclusive)]
 
 #![allow(match_ref_pats)]
 
