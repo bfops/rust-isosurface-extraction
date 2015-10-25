@@ -1,5 +1,7 @@
 //! Voxel-to-mesh conversion functions
 
+#![feature(slice_patterns)]
+
 #![allow(match_ref_pats)]
 
 #![deny(missing_docs)]
