@@ -49,9 +49,9 @@ pub mod voxel_storage {
   /// The voxel storage interface required by dual contouring.
   pub trait T<Material> where Material: material::T {
     #[allow(missing_docs)]
-    fn get_material(&mut self, voxel: &voxel_data::bounds::T) -> Material;
+    fn get_material(&mut self, voxel: &voxel_data::bounds::T) -> Option<Material>;
     /// Get the data for the given voxel. This function may also return data from a larger encompassing voxel.
-    fn get_voxel_data(&mut self, voxel: &voxel_data::bounds::T) -> VoxelData;
+    fn get_voxel_data(&mut self, voxel: &voxel_data::bounds::T) -> Option<VoxelData>;
   }
 }
 
@@ -104,6 +104,7 @@ pub mod edge {
   }
 
   enum Crossing<Material> {
+    Undefined,
     None,
     LowInside(Material),
     HighInside(Material),
@@ -117,8 +118,16 @@ pub mod edge {
     Voxels: voxel_storage::T<Material>,
   {
     let [b0, b1] = corner_bounds(edge);
-    let material = voxels.get_material(&b0);
-    let neighbor_material = voxels.get_material(&b1);
+    let material = 
+      match voxels.get_material(&b0) {
+        None => return Crossing::Undefined,
+        Some(m) => m,
+      };
+    let neighbor_material =
+      match voxels.get_material(&b1) {
+        None => return Crossing::Undefined,
+        Some(m) => m,
+      };
     if material == neighbor_material {
       Crossing::None
     } else if material.is_opaque() {
@@ -131,7 +140,7 @@ pub mod edge {
   fn resolve_voxels<'a, Material, Voxels, It>(
     voxels: &mut Voxels,
     bounds: It,
-  ) -> Vec<(Point3<f32>, Vector3<f32>)> where
+  ) -> Option<Vec<(Point3<f32>, Vector3<f32>)>> where
     Material: material::T,
     Voxels: voxel_storage::T<Material>,
     It: Iterator<Item=&'a voxel_data::bounds::T>,
@@ -146,12 +155,16 @@ pub mod edge {
         }
       }
 
-      let voxel_data = voxels.get_voxel_data(&bounds);
+      let voxel_data = 
+        match voxels.get_voxel_data(&bounds) {
+          None => return None,
+          Some(d) => d,
+        };
       resolved_bounds.push(voxel_data.bounds);
       resolved_voxel_data.push((voxel_data.vertex, voxel_data.normal));
     }
 
-    resolved_voxel_data
+    Some(resolved_voxel_data)
   }
 
   /// Run dual contouring on a single edge
@@ -167,12 +180,19 @@ pub mod edge {
   {
     let (material, vertices_and_normals) =
       match crossing(voxels, edge) {
+        Crossing::Undefined => return,
         Crossing::None => return,
         Crossing::HighInside(material) => {
-          (material, resolve_voxels(voxels, neighbors(&edge).iter()))
+          match resolve_voxels(voxels, neighbors(&edge).iter()) {
+            None => return,
+            Some(resolved) => (material, resolved)
+          }
         },
         Crossing::LowInside(material) => {
-          (material, resolve_voxels(voxels, neighbors(&edge).iter().rev()))
+          match resolve_voxels(voxels, neighbors(&edge).iter().rev()) {
+            None => return,
+            Some(resolved) => (material, resolved)
+          }
         }
       };
 

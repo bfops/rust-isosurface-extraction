@@ -11,11 +11,9 @@ name = "isosurface_extraction"
 path = "./src/mod.rs"
 
 [dependencies]
+cgmath = "0.3.1"
 clippy = "*"
 log = "*"
-
-[dependencies.cgmath]
-git = "https://github.com/bjz/cgmath-rs"
 
 [dependencies.voxel-data]
 git = "https://github.com/bfops/rust-voxel-data"
