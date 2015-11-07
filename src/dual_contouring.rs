@@ -62,9 +62,10 @@ pub mod edge {
 
   use super::{voxel_storage, polygon, material};
 
-  #[derive(Debug, Clone, Copy)]
+  #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
   pub enum Direction { X, Y, Z }
 
+  #[derive(Debug, Clone, PartialEq, Eq, Hash)]
   #[allow(missing_docs)]
   pub struct T {
     pub low_corner: Point3<i32>,
