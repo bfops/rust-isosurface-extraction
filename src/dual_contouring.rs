@@ -119,7 +119,7 @@ pub mod edge {
     Voxels: voxel_storage::T<Material>,
   {
     let [b0, b1] = corner_bounds(edge);
-    let material = 
+    let material =
       match voxels.get_material(&b0) {
         None => return Crossing::Undefined,
         Some(m) => m,
@@ -156,7 +156,7 @@ pub mod edge {
         }
       }
 
-      let voxel_data = 
+      let voxel_data =
         match voxels.get_voxel_data(&bounds) {
           None => return None,
           Some(d) => d,
@@ -174,24 +174,24 @@ pub mod edge {
     voxels: &mut Voxels,
     edge: &T,
     mut poly: OnPolygon,
-  ) where
+  ) -> Option<()> where
     Material: material::T + Clone,
     Voxels: voxel_storage::T<Material>,
     OnPolygon: FnMut(polygon::T<Material>),
   {
     let (material, vertices_and_normals) =
       match crossing(voxels, edge) {
-        Crossing::Undefined => return,
-        Crossing::None => return,
+        Crossing::Undefined => return None,
+        Crossing::None => return None,
         Crossing::HighInside(material) => {
           match resolve_voxels(voxels, neighbors(&edge).iter()) {
-            None => return,
+            None => return None,
             Some(resolved) => (material, resolved)
           }
         },
         Crossing::LowInside(material) => {
           match resolve_voxels(voxels, neighbors(&edge).iter().rev()) {
-            None => return,
+            None => return None,
             Some(resolved) => (material, resolved)
           }
         }
@@ -248,5 +248,7 @@ pub mod edge {
     } else {
       panic!("Edge has an unexpected number of neighbors: {}", vertices_and_normals.len());
     }
+
+    Some(())
   }
 }
