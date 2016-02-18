@@ -141,7 +141,7 @@ pub mod edge {
   fn resolve_voxels<'a, Material, Voxels, It>(
     voxels: &mut Voxels,
     bounds: It,
-  ) -> Option<Vec<(Point3<f32>, Vector3<f32>)>> where
+  ) -> Result<Vec<(Point3<f32>, Vector3<f32>)>, ()> where
     Material: material::T,
     Voxels: voxel_storage::T<Material>,
     It: Iterator<Item=&'a voxel_data::bounds::T>,
@@ -158,14 +158,14 @@ pub mod edge {
 
       let voxel_data =
         match voxels.get_voxel_data(&bounds) {
-          None => return None,
+          None => return Err(()),
           Some(d) => d,
         };
       resolved_bounds.push(voxel_data.bounds);
       resolved_voxel_data.push((voxel_data.vertex, voxel_data.normal));
     }
 
-    Some(resolved_voxel_data)
+    Ok(resolved_voxel_data)
   }
 
   /// Run dual contouring on a single edge
@@ -182,18 +182,12 @@ pub mod edge {
     let (material, vertices_and_normals) =
       match crossing(voxels, edge) {
         Crossing::Undefined => return Err(()),
-        Crossing::None => return Err(()),
+        Crossing::None => return Ok(()),
         Crossing::HighInside(material) => {
-          match resolve_voxels(voxels, neighbors(&edge).iter()) {
-            None => return Err(()),
-            Some(resolved) => (material, resolved)
-          }
+          (material, try!(resolve_voxels(voxels, neighbors(&edge).iter())))
         },
         Crossing::LowInside(material) => {
-          match resolve_voxels(voxels, neighbors(&edge).iter().rev()) {
-            None => return Err(()),
-            Some(resolved) => (material, resolved)
-          }
+          (material, try!(resolve_voxels(voxels, neighbors(&edge).iter().rev())))
         }
       };
 
