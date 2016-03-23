@@ -129,7 +129,8 @@ pub mod edge {
         None => return Crossing::Undefined,
         Some(m) => m,
       };
-    if material == neighbor_material {
+    if (material == neighbor_material) ||
+       (material.is_opaque() && neighbor_material.is_opaque()) {
       Crossing::None
     } else if material.is_opaque() {
       Crossing::LowInside(material)
