@@ -11,7 +11,7 @@ name = "isosurface_extraction"
 path = "./src/mod.rs"
 
 [dependencies]
-cgmath = "0.3.1"
+cgmath = "0.10.*"
 clippy = "*"
 log = "*"
 

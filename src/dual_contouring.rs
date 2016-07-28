@@ -57,7 +57,7 @@ pub mod voxel_storage {
 
 #[allow(missing_docs)]
 pub mod edge {
-  use cgmath::{Aabb, Point, Point3, Vector, Vector3};
+  use cgmath::{Point3, Vector3, EuclideanSpace};
   use voxel_data;
 
   use super::{voxel_storage, polygon, material};
@@ -81,7 +81,7 @@ pub mod edge {
         Direction::Y => Vector3::new(0, 1, 0),
         Direction::Z => Vector3::new(0, 0, 1),
       };
-    let p1 = p0.add_v(&d);
+    let p1 = p0 + d;
     [
       voxel_data::bounds::new(p0.x, p0.y, p0.z, edge.lg_size),
       voxel_data::bounds::new(p1.x, p1.y, p1.z, edge.lg_size),
@@ -98,9 +98,9 @@ pub mod edge {
     let make_bounds = |p: Point3<i32>| voxel_data::bounds::new(p.x, p.y, p.z, edge.lg_size);
     [
       make_bounds(edge.low_corner),
-      make_bounds(edge.low_corner.add_v(&v1)),
-      make_bounds(edge.low_corner.add_v(&v1).add_v(&v2)),
-      make_bounds(edge.low_corner.add_v(&v2)),
+      make_bounds(edge.low_corner + v1),
+      make_bounds(edge.low_corner + v1 + v2),
+      make_bounds(edge.low_corner + v2),
     ]
   }
 
@@ -152,13 +152,13 @@ pub mod edge {
 
     'resolve_loop: for bounds in bounds {
       for resolved_bounds in &resolved_bounds {
-        if resolved_bounds.contains(&bounds) {
+        if resolved_bounds.contains(bounds) {
           continue 'resolve_loop;
         }
       }
 
       let voxel_data =
-        match voxels.get_voxel_data(&bounds) {
+        match voxels.get_voxel_data(bounds) {
           None => return Err(()),
           Some(d) => d,
         };
@@ -209,9 +209,9 @@ pub mod edge {
       let (v2, n2) = vertices_and_normals[2];
       let (v3, n3) = vertices_and_normals[3];
       let v_center =
-        v0.add_v(&v1.to_vec()).add_v(&v2.to_vec()).add_v(&v3.to_vec()).div_s(4.0);
+        (v0 + v1.to_vec() + v2.to_vec() + v3.to_vec()) / 4.0;
       let n_center =
-        n0.add_v(&n1).add_v(&n2).add_v(&n3).div_s(4.0);
+        (n0 + n1 + n2 + n3) / 4.0;
       poly(
         polygon::T {
           vertices: [v0, v1, v_center],
