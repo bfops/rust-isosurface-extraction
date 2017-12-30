@@ -118,7 +118,9 @@ pub mod edge {
     Material: material::T,
     Voxels: voxel_storage::T<Material>,
   {
-    let [b0, b1] = corner_bounds(edge);
+    let bounds = corner_bounds(edge);
+    let b0 = bounds[0];
+    let b1 = bounds[1];
     let material =
       match voxels.get_material(&b0) {
         None => return Crossing::Undefined,
